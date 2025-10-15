@@ -1,0 +1,18 @@
+@page "/"
+@inject ProtectedSessionStorage SessionStorage
+
+<h1>Protected session storage demo</h1>
+
+<button @onclick="Save">Save random value</button>
+<p>@status</p>
+
+@code {
+    private string status = "Nothing saved yet.";
+
+    private async Task Save()
+    {
+        var value = Guid.NewGuid().ToString();
+        await SessionStorage.SetAsync("sample", value);
+        status = $"Saved value {value} into protected session storage.";
+    }
+}
