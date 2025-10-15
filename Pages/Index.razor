@@ -1,0 +1,42 @@
+@page "/"
+@inject ProtectedSessionStorage SessionStorage
+
+<PageTitle>Home</PageTitle>
+
+<h1>Protected session storage demo</h1>
+
+<button class="btn btn-primary" @onclick="Save">Save random value</button>
+<button class="btn btn-secondary" @onclick="Load">Load value</button>
+<button class="btn btn-outline-danger" @onclick="Clear">Clear value</button>
+
+<p>@status</p>
+
+@code {
+    private string status = "Nothing saved yet.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Save()
+    {
+        var value = Guid.NewGuid().ToString();
+        await SessionStorage.SetAsync("sample", value);
+        status = $"Saved value {value} into protected session storage.";
+    }
+
+    private async Task Load()
+    {
+        var result = await SessionStorage.GetAsync<string>("sample");
+        status = result.Success
+            ? $"Loaded value '{result.Value}' from protected session storage."
+            : "No value has been saved yet.";
+    }
+
+    private async Task Clear()
+    {
+        await SessionStorage.DeleteAsync("sample");
+        status = "Cleared the saved value.";
+    }
+}
