@@ -1,0 +1,21 @@
+<nav class="nav-menu">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Главная
+            </NavLink>
+        </li>
+        <AuthorizeView Roles="Admin">
+            <li class="nav-item">
+                <NavLink class="nav-link" href="/admin">
+                    <span class="oi oi-lock-locked" aria-hidden="true"></span> Панель администратора
+                </NavLink>
+            </li>
+        </AuthorizeView>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/directory">
+                <span class="oi oi-people" aria-hidden="true"></span> Сотрудники
+            </NavLink>
+        </li>
+    </ul>
+</nav>

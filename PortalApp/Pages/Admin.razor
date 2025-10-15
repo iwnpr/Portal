@@ -1,0 +1,68 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject IConfiguration Configuration
+@inject IOptionsSnapshot<UserDirectoryOptions> DirectoryOptions
+
+<PageTitle>Администрирование</PageTitle>
+
+<div class="page-header">
+    <h2>Панель администратора</h2>
+    <p class="text-muted">Мониторинг LDAP-подключения и управление пользователями портала.</p>
+</div>
+
+<section class="mb-5">
+    <h3>Настройки LDAP</h3>
+    <div class="card">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Сервер</dt>
+                <dd class="col-sm-8">@Configuration["Ldap:ServerUrl"]:@Configuration["Ldap:Port"]</dd>
+
+                <dt class="col-sm-4">SSL</dt>
+                <dd class="col-sm-8">@(bool.TryParse(Configuration["Ldap:UseSsl"], out var useSsl) && useSsl ? "Включен" : "Выключен")</dd>
+
+                <dt class="col-sm-4">Шаблон DN</dt>
+                <dd class="col-sm-8">@Configuration["Ldap:UserDnTemplate"]</dd>
+            </dl>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h3>Пользователи портала</h3>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Логин</th>
+                    <th>Имя</th>
+                    <th>Департамент</th>
+                    <th>Роли</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in DirectoryOptions.Value.Users.OrderBy(u => u.Username))
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>@user.DisplayName</td>
+                        <td>@user.Department</td>
+                        <td>
+                            @if (user.Roles.Count == 0)
+                            {
+                                <span class="badge bg-secondary">Нет ролей</span>
+                            }
+                            else
+                            {
+                                foreach (var role in user.Roles)
+                                {
+                                    <span class="badge bg-primary me-1">@role</span>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
