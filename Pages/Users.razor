@@ -1,0 +1,103 @@
+@page "/users"
+@attribute [Authorize(Roles = RoleNames.Admin)]
+
+@inject UserService UserService
+
+<PageTitle>Пользователи</PageTitle>
+
+<h1>Управление пользователями</h1>
+
+@if (_isLoading)
+{
+    <p>Загрузка...</p>
+}
+else if (_users.Count == 0)
+{
+    <p>Пользователи ещё не входили через LDAP.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Имя пользователя</th>
+                <th>Отображаемое имя</th>
+                <th>Почта</th>
+                <th>Роли</th>
+                <th>Управление</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in _users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@(user.DisplayName ?? "—")</td>
+                    <td>@(user.Email ?? "—")</td>
+                    <td>
+                        @foreach (var role in user.UserRoles.Select(r => r.Role.Name))
+                        {
+                            <span class="badge text-bg-primary me-1">@role</span>
+                        }
+                    </td>
+                    <td>
+                        <select class="form-select d-inline-block w-auto me-2" @onchange="eventArgs => AssignRoleAsync(user, eventArgs)">
+                            <option selected value="">Добавить роль</option>
+                            @foreach (var role in _roles)
+                            {
+                                <option value="@role.Id">@role.Name</option>
+                            }
+                        </select>
+                        @foreach (var role in user.UserRoles)
+                        {
+                            <button class="btn btn-sm btn-outline-danger me-1" @onclick="() => RemoveRoleAsync(user, role.RoleId)">
+                                Удалить @role.Role.Name
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private readonly List<ApplicationUser> _users = new();
+    private IReadOnlyList<Role> _roles = Array.Empty<Role>();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _users.Clear();
+        _roles = await UserService.GetRolesAsync();
+        var users = await UserService.GetUsersAsync();
+        _users.AddRange(users);
+        _isLoading = false;
+    }
+
+    private async Task AssignRoleAsync(ApplicationUser user, ChangeEventArgs args)
+    {
+        if (args.Value is null || string.IsNullOrWhiteSpace(args.Value.ToString()))
+        {
+            return;
+        }
+
+        if (Guid.TryParse(args.Value.ToString(), out var roleId))
+        {
+            await UserService.AssignRoleAsync(user.Id, roleId);
+            await LoadAsync();
+        }
+    }
+
+    private async Task RemoveRoleAsync(ApplicationUser user, Guid roleId)
+    {
+        await UserService.RemoveRoleAsync(user.Id, roleId);
+        await LoadAsync();
+    }
+}
