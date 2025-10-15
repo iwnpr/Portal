@@ -1,6 +1,5 @@
 using Portal.Configuration;
 using Portal.Data;
-using Portal.Models;
 using Portal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +29,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -51,47 +51,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapPost("/account/login", async Task<IResult> (HttpContext httpContext, LoginRequest request, IGitLabLdapAuthenticationService ldapService, UserService userService) =>
-{
-    var ldapResult = await ldapService.AuthenticateAsync(request.UserName, request.Password);
-    if (!ldapResult.Success)
-    {
-        return Results.BadRequest(new { message = ldapResult.ErrorMessage ?? "Authentication failed" });
-    }
-
-    var user = await userService.SyncUserAsync(ldapResult);
-
-    var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new(ClaimTypes.Name, user.DisplayName ?? user.UserName),
-    };
-
-    if (!string.IsNullOrWhiteSpace(user.Email))
-    {
-        claims.Add(new Claim(ClaimTypes.Email, user.Email!));
-    }
-
-    foreach (var role in user.UserRoles.Select(ur => ur.Role.Name))
-    {
-        claims.Add(new Claim(ClaimTypes.Role, role));
-    }
-
-    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
-    return Results.Ok(new { message = "Authenticated" });
-}).AllowAnonymous();
-
-app.MapPost("/account/logout", async (HttpContext httpContext) =>
-{
-    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    return Results.Ok();
-}).RequireAuthorization();
-
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.MapControllers();
 
 app.Run();
-
-record LoginRequest(string UserName, string Password);
