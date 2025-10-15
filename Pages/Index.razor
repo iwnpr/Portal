@@ -1,18 +1,16 @@
 @page "/"
-@inject ProtectedSessionStorage SessionStorage
+@attribute [Authorize]
 
-<h1>Protected session storage demo</h1>
+<PageTitle>Портал</PageTitle>
 
-<button @onclick="Save">Save random value</button>
-<p>@status</p>
+<h1>Добро пожаловать в корпоративный портал</h1>
 
-@code {
-    private string status = "Nothing saved yet.";
-
-    private async Task Save()
-    {
-        var value = Guid.NewGuid().ToString();
-        await SessionStorage.SetAsync("sample", value);
-        status = $"Saved value {value} into protected session storage.";
-    }
-}
+<AuthorizeView>
+    <Authorized>
+        <p>Вы вошли как <strong>@context.User.Identity?.Name</strong>.</p>
+        <p>Используйте меню слева, чтобы управлять пользователями и просматривать доступные разделы.</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>Пожалуйста, <NavLink href="/login">войдите</NavLink> чтобы продолжить.</p>
+    </NotAuthorized>
+</AuthorizeView>

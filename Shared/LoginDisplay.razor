@@ -1,0 +1,24 @@
+@inject NavigationManager Navigation
+@inject IHttpClientFactory ClientFactory
+
+<AuthorizeView>
+    <Authorized>
+        <div class="d-flex align-items-center gap-3 text-white">
+            <span>@context.User.Identity?.Name</span>
+            <button class="btn btn-outline-light btn-sm" @onclick="LogoutAsync">Выйти</button>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <a class="btn btn-outline-light" href="/login">Войти</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        var client = ClientFactory.CreateClient();
+        client.BaseAddress ??= new Uri(Navigation.BaseUri);
+        await client.PostAsync("/account/logout", null);
+        Navigation.NavigateTo("/login", true);
+    }
+}

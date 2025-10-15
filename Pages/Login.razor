@@ -1,0 +1,88 @@
+@page "/login"
+@attribute [AllowAnonymous]
+
+@inject NavigationManager Navigation
+@inject IHttpClientFactory ClientFactory
+
+<PageTitle>Вход</PageTitle>
+
+<h1>Вход в систему</h1>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="HandleLoginAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="username" class="form-label">Имя пользователя</label>
+        <InputText id="username" class="form-control" @bind-Value="_model.UserName" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="password" class="form-label">Пароль</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+    </div>
+
+    <button class="btn btn-primary" type="submit" disabled="@_isSubmitting">
+        @if (_isSubmitting)
+        {
+            <span>Выполняется вход...</span>
+        }
+        else
+        {
+            <span>Войти</span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    private readonly LoginInput _model = new();
+    private bool _isSubmitting;
+    private string? _error;
+
+    private async Task HandleLoginAsync()
+    {
+        _error = null;
+        _isSubmitting = true;
+
+        try
+        {
+            var client = ClientFactory.CreateClient();
+            client.BaseAddress ??= new Uri(Navigation.BaseUri);
+            var response = await client.PostAsJsonAsync("/account/login", _model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var message = await response.Content.ReadFromJsonAsync<ErrorResponse>() ?? new ErrorResponse("Ошибка авторизации");
+                _error = message.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Ошибка: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private sealed record LoginInput
+    {
+        [Required(ErrorMessage = "Укажите имя пользователя")]
+        public string UserName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Введите пароль")]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    private sealed record ErrorResponse(string Message);
+}
