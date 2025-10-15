@@ -2,10 +2,10 @@
 @inject SignInService SignInService
 
 <AuthorizeView>
-    <Authorized>
+    <Authorized Context="authContext">
         <div class="dropdown">
             <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                @context.User.Identity?.Name
+                @authContext.User.Identity?.Name
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
