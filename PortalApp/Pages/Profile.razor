@@ -1,0 +1,43 @@
+@page "/profile"
+@attribute [Authorize]
+
+<PageTitle>Профиль</PageTitle>
+
+<AuthorizeView>
+    <Authorized Context="context">
+        <div class="profile-card">
+            <h2>Профиль пользователя</h2>
+            <dl class="row">
+                <dt class="col-sm-3">Имя</dt>
+                <dd class="col-sm-9">@context.User.Identity?.Name</dd>
+
+                <dt class="col-sm-3">Логин</dt>
+                <dd class="col-sm-9">@context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value</dd>
+
+                <dt class="col-sm-3">Департамент</dt>
+                <dd class="col-sm-9">@context.User.FindFirst("department")?.Value ?? "—"</dd>
+
+                <dt class="col-sm-3">Роли</dt>
+                <dd class="col-sm-9">
+                    @{
+                        var roles = context.User.FindAll(ClaimTypes.Role).ToList();
+                    }
+                    @if (roles.Count == 0)
+                    {
+                        <span class="badge bg-secondary">Нет ролей</span>
+                    }
+                    else
+                    {
+                        foreach (var role in roles)
+                        {
+                            <span class="badge bg-primary me-1">@role.Value</span>
+                        }
+                    }
+                </dd>
+            </dl>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+@inject SignInService SignInService
+
+<AuthorizeView>
+    <Authorized>
+        <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                @context.User.Identity?.Name
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/profile">Профиль</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><button class="dropdown-item" @onclick="Logout">Выход</button></li>
+            </ul>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <a class="btn btn-primary" href="/login">Войти</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task Logout()
+    {
+        await SignInService.SignOutAsync();
+        Navigation.NavigateTo("/login", true);
+    }
+}
