@@ -1,0 +1,20 @@
+@inject NavigationManager Navigation
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+
+<AuthorizeView>
+    <Authorized Context="context">
+        <span class="user-info">@context.User.Identity?.Name</span>
+        <button class="btn btn-link" @onclick="SignOut">Выход</button>
+    </Authorized>
+    <NotAuthorized>
+        <a href="login">Войти</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task SignOut()
+    {
+        await AuthenticationStateProvider.SignOutAsync();
+        Navigation.NavigateTo("login", forceLoad: true);
+    }
+}

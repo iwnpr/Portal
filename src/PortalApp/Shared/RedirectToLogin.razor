@@ -1,0 +1,23 @@
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/access-denied", true);
+            return;
+        }
+
+        var relativeUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (!relativeUrl.StartsWith('/'))
+        {
+            relativeUrl = "/" + relativeUrl;
+        }
+
+        var encodedReturnUrl = Uri.EscapeDataString(relativeUrl);
+        Navigation.NavigateTo($"/login?returnUrl={encodedReturnUrl}", true);
+    }
+}
