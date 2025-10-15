@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Linq;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using PortalApp.Services.Models;
 
 namespace PortalApp.Services;

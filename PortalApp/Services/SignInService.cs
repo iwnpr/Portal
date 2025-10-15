@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using PortalApp.Services.Models;
 
 namespace PortalApp.Services;
