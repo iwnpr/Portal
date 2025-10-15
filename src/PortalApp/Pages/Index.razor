@@ -1,0 +1,19 @@
+@page "/"
+@attribute [Authorize]
+
+<PageTitle>Главная</PageTitle>
+
+<h1>Добро пожаловать в портал</h1>
+
+<AuthorizeView>
+    <Authorized Context="authState">
+        <p>Вы вошли как <strong>@authState.User.Identity?.Name</strong>.</p>
+        <p>Ваши роли:</p>
+        <ul>
+            @foreach (var role in authState.User.FindAll(System.Security.Claims.ClaimTypes.Role))
+            {
+                <li>@role.Value</li>
+            }
+        </ul>
+    </Authorized>
+</AuthorizeView>

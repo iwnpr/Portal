@@ -1,0 +1,14 @@
+<nav class="nav-menu">
+    <ul>
+        <li>
+            <NavLink href="/" Match="NavLinkMatch.All">Главная</NavLink>
+        </li>
+        <AuthorizeView Roles="Administrator">
+            <Authorized>
+                <li>
+                    <NavLink href="/admin">Администрирование</NavLink>
+                </li>
+            </Authorized>
+        </AuthorizeView>
+    </ul>
+</nav>

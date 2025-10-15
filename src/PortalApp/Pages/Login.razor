@@ -1,0 +1,83 @@
+@page "/login"
+@inject NavigationManager NavigationManager
+@inject GitLabLdapAuthenticationService AuthenticationService
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@attribute [AllowAnonymous]
+
+<PageTitle>Вход</PageTitle>
+
+<h1>Вход</h1>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">@ErrorMessage</div>
+}
+
+<EditForm Model="Login" OnValidSubmit="HandleLoginAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        <InputText id="username" class="form-control" @bind-Value="Login.Username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        <InputText id="password" class="form-control" @bind-Value="Login.Password" type="password" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary" type="submit" disabled="@IsSubmitting">@ButtonText</button>
+</EditForm>
+
+@code {
+    private readonly LoginModel Login = new();
+    private bool IsSubmitting;
+    private string? ErrorMessage;
+
+    private string ButtonText => IsSubmitting ? "Вход..." : "Войти";
+
+    private async Task HandleLoginAsync()
+    {
+        if (IsSubmitting)
+        {
+            return;
+        }
+
+        IsSubmitting = true;
+        ErrorMessage = null;
+
+        try
+        {
+            var result = await AuthenticationService.AuthenticateAsync(Login.Username, Login.Password);
+            if (!result.Succeeded || result.Session is null)
+            {
+                ErrorMessage = string.IsNullOrWhiteSpace(result.Message) ? "Не удалось выполнить вход." : result.Message;
+                return;
+            }
+
+            await AuthenticationStateProvider.SignInAsync(result.Session);
+
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var query = QueryHelpers.ParseQuery(uri.Query);
+            var returnUrl = query.TryGetValue("returnUrl", out var values) ? values.FirstOrDefault() : null;
+            var target = "/";
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative))
+            {
+                target = returnUrl!;
+            }
+
+            NavigationManager.NavigateTo(target, forceLoad: true);
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Введите имя пользователя")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Введите пароль")]
+        public string Password { get; set; } = string.Empty;
+    }
+}
