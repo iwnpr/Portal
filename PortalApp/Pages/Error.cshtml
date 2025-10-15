@@ -1,0 +1,22 @@
+@page
+@model PortalApp.Pages.ErrorModel
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Ошибка</title>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="display-5 text-danger">Произошла ошибка</h1>
+        <p class="lead">Мы записали информацию об инциденте и скоро разберемся с ним.</p>
+        @if (Model.ShowRequestId)
+        {
+            <p><strong>ID запроса:</strong> <code>@Model.RequestId</code></p>
+        }
+        <a href="/" class="btn btn-primary">Вернуться на главную</a>
+    </div>
+</body>
+</html>

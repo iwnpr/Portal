@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+
+<div class="app-container">
+    <header class="app-header d-flex justify-content-between align-items-center px-4 py-3">
+        <div class="d-flex align-items-center gap-3">
+            <img src="images/github-mark.svg" alt="GitHub" width="32" height="32" />
+            <div>
+                <h1 class="h4 mb-0">Корпоративный портал</h1>
+                <small class="text-muted">Доступ к внутренним сервисам компании</small>
+            </div>
+        </div>
+        <LoginDisplay />
+    </header>
+    <div class="app-body">
+        <NavMenu />
+        <section class="app-content">
+            @Body
+        </section>
+    </div>
+</div>

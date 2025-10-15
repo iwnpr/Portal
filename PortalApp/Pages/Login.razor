@@ -1,0 +1,103 @@
+@page "/login"
+@inject NavigationManager Navigation
+@inject ILdapAuthenticationService LdapAuthenticationService
+@inject SignInService SignInService
+
+<PageTitle>Вход</PageTitle>
+
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-brand mb-4">
+            <img src="images/github-mark.svg" alt="GitHub" width="40" height="40" />
+            <div>
+                <h2 class="mb-1">Вход через GitHub LDAP</h2>
+                <p class="text-muted mb-0">Используйте корпоративные учетные данные GitHub Enterprise</p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @_errorMessage
+            </div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="HandleLoginAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label" for="username">Имя пользователя</label>
+                <InputText id="username" class="form-control" @bind-Value="_model.Username" autocomplete="username" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Пароль</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" autocomplete="current-password" />
+            </div>
+            <button class="btn btn-primary w-100" type="submit" disabled="@_isBusy">
+                @if (_isBusy)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="ms-2">Проверяем...</span>
+                }
+                else
+                {
+                    <span>Войти</span>
+                }
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private bool _isBusy;
+    private string? _errorMessage;
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    private async Task HandleLoginAsync()
+    {
+        _errorMessage = null;
+        _isBusy = true;
+
+        try
+        {
+            var user = await LdapAuthenticationService.AuthenticateAsync(_model.Username, _model.Password);
+            if (user is null)
+            {
+                _errorMessage = "Неверное имя пользователя или пароль.";
+                return;
+            }
+
+            await SignInService.SignInAsync(user);
+
+            var target = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
+            Navigation.NavigateTo(target, true);
+        }
+        catch (LdapException ex)
+        {
+            _errorMessage = ex.ResultCode == Novell.Directory.Ldap.LdapException.INVALID_CREDENTIALS
+                ? "LDAP: неверные учетные данные."
+                : $"Ошибка подключения к LDAP: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Не удалось выполнить вход: {ex.Message}";
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Укажите имя пользователя")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Введите пароль")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

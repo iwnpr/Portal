@@ -1,22 +1,64 @@
-# Portal
+# Корпоративный портал на Blazor
 
-This is a minimal Blazor Server sample that demonstrates how to register and use `ProtectedSessionStorage` from the `Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage` package.
+Прототип корпоративного портала с авторизацией через LDAP (GitHub Enterprise) и разграничением доступа по ролям.
 
-## Prerequisites
+## Возможности
 
-Install the [.NET 8.0 SDK](https://dotnet.microsoft.com/download) so the project can be restored and built locally.
+- Страница авторизации с проверкой учетных записей в GitHub LDAP.
+- Сохранение состояния сессии в защищенном хранилище браузера и cookie-аутентификации.
+- Главная страница с плитками ключевых корпоративных сервисов.
+- Профиль сотрудника с информацией о ролях и департаменте.
+- Справочник сотрудников, который берет данные из конфигурации.
+- Административная панель для просмотра настроек LDAP и списка пользователей с ролями.
 
-## Building
+## Структура проекта
+
+- `PortalApp.sln` – файл решения.
+- `PortalApp/` – Blazor Server приложение.
+  - `Pages/` – Razor-страницы и компоненты маршрутизации.
+  - `Shared/` – общие компоненты макета.
+  - `Services/` – службы аутентификации и управления состоянием.
+  - `wwwroot/` – статические ресурсы и стили.
+
+## Настройка LDAP
+
+Параметры подключения находятся в `appsettings.json` в секции `Ldap`. Для подключения к GitHub Enterprise LDAP обновите значения:
+
+```json
+"Ldap": {
+  "ServerUrl": "github-ldap.example.com",
+  "Port": 636,
+  "UseSsl": true,
+  "UserDnTemplate": "uid={0},ou=users,dc=github,dc=enterprise"
+}
+```
+
+- `ServerUrl` – адрес LDAP сервера GitHub Enterprise.
+- `Port` – порт LDAP (обычно 636 для LDAPS).
+- `UseSsl` – использовать ли защищенное соединение.
+- `UserDnTemplate` – шаблон DN пользователя, куда подставляется логин.
+
+## Пользователи и роли
+
+Раздел `PortalUsers` в `appsettings.json` описывает справочник сотрудников и их роли. Роли применяются к `ClaimsPrincipal` после успешного входа и могут использоваться в политике авторизации.
+
+Пример записи:
+
+```json
+{
+  "Username": "a.smirnov",
+  "DisplayName": "Алексей Смирнов",
+  "Department": "Платформа",
+  "Roles": ["Admin", "IT"]
+}
+```
+
+## Запуск
 
 ```bash
 dotnet restore
-dotnet build
-```
-
-## Running
-
-```bash
+cd PortalApp
 dotnet run
 ```
 
-Then navigate to `https://localhost:5001` (or the URL printed by the command) and experiment with the buttons on the home page to save, load, and clear values stored in protected session storage.
+Приложение доступно по адресу `https://localhost:7174` (см. `launchSettings.json`).
